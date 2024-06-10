@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>Chatroom</title>
+<script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js
+"></script>
+<link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+<div class="inputs1">
+            <input type="password" id="apiKey" placeholder="請輸入您的API Key">
+            
+        </div><h1>Chatroom</h1>
+
+
+<div id="chatHistory" class="shadowbox">
+
+            <!-- 聊天歷史紀錄 -->
+        </div>
+		
+<div class="inputs">
+            
+            <input type="text" id="messageInput" placeholder="輸入您想詢問的問題">
+            <button onclick="sendMessage()">傳送</button>
+        </div>
+		
+<!-- <input type="password" id="apiKey" placeholder="請輸入您的API Key">
+            <input type="text" id="messageInput" placeholder="輸入您想詢問的問題">
+            <button onclick="sendMessage()">傳送</button> -->
+<script>
+
+            const converter = new showdown.Converter();
+            let thread = [];
+            function sendMessage() {
+                var apiKey = document.getElementById("apiKey").value;
+                const message = document.getElementById("messageInput").value;
+                document.getElementById("chatHistory").innerHTML +=
+                    "<div><div class='author'>您的問題:</div>" + message + "</div>";
+                thread.push({
+                    role: "user",
+                    parts: [{ text: message }],
+                });
+                console.log(apiKey);
+                fetch(
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
+                        apiKey,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            contents: thread,
+                        }),
+                    }
+                )
+                    .then(response => response.json())
+                    .then(data => {
+                        const msg = data.candidates[0].content.parts[0].text;
+                        document.getElementById("chatHistory").innerHTML +=
+                            "<div><div class='author'>Gimini:</div>" +
+                            converter.makeHtml(msg) +
+                            "</div>";
+                        thread.push({
+                            role: "model",
+                            parts: [
+                                {
+                                    text: msg,
+                                },
+                            ],
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        document.getElementById("chatHistory").innerHTML +=
+                            "<div><div class='author'>Bot:</div>Error: " +
+                            error +
+                            "</div>";
+                    });
+            }
+        
+</script>
+</body>
+</html>
